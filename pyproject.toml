@@ -8,8 +8,10 @@ dependencies = [
     "rich>=13.0.0",
     "python-dotenv>=1.0.0",
     "pynput>=1.7.7",
-    "pyobjc>=10.0",
+    "pillow>=10.0.0",
+    "pyobjc>=10.0; sys_platform == 'darwin'",
 ]
 
 [project.scripts]
 cua-poc = "src_mac.main:cli"
+cua-poc-win = "src_windows.main:cli"
