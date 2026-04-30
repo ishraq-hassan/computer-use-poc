@@ -74,16 +74,24 @@ No special permissions required — pynput on Windows uses Win32 input APIs dire
 ### Usage
 
 ```bash
-# Full comparison (normal LLM + Computer Use)
+# Full comparison (normal LLM + Computer Use). Defaults to operating on the primary monitor.
 uv run python -m src_windows.main
 
 # Custom Windows task
 uv run python -m src_windows.main --task "Open Notepad and type 'Hello from computer use'"
+
+# Operate on a specific monitor (1-indexed; 1 = primary)
+uv run python -m src_windows.main --monitor 2
+
+# Operate on the entire virtual desktop (less reliable on multi-monitor)
+uv run python -m src_windows.main --monitor all
 ```
+
+At startup the agent prints every monitor it detected with resolution and offset, so you can verify which `--monitor N` index maps to which physical screen on the host machine.
 
 ### How it works (Windows)
 
-1.  **Actions**: The `computer` tool's actions are mapped to native Win32 input via `pynput`. The Win key is reachable through `WIN`, `WINDOWS`, `META`, `SUPER`, or `CMD`.
-2.  **Multi-monitor**: The agent captures the **entire virtual desktop** (every connected monitor) using `PIL.ImageGrab.grab(all_screens=True)`, so it can see and click on any display. Click coordinates from the model are screenshot-relative; we translate them by the virtual-screen offset (from `GetSystemMetrics(SM_XVIRTUALSCREEN/SM_YVIRTUALSCREEN)`) before calling pynput, which uses primary-monitor-origin coords.
+1.  **Actions**: The `computer` tool's actions are mapped to native Win32 input via `pyautogui` (not `pynput` — pynput's `SendInput` keystrokes silently fail to reach the foreground window on Windows 11 in practice; pyautogui's variant lands reliably). The Win key is reachable through `WIN`, `WINDOWS`, `META`, `SUPER`, or `CMD`. Move the cursor to a screen corner to abort the agent (`pyautogui.FAILSAFE = True`).
+2.  **Per-monitor capture**: At startup the agent enumerates every monitor via `EnumDisplayMonitors` and selects one (default: primary) to operate on. Screenshots are bbox-cropped to that monitor's region in the virtual desktop, so the model sees a single normal-sized screen instead of a wide stitched image. Click coordinates from the model are screenshot-relative; we translate them by the chosen monitor's `(left, top)` offset before issuing the Win32 mouse call, so clicks land in the correct physical-pixel position. Pass `--monitor 2` (or `all`) to override.
 3.  **DPI**: The process is marked **per-monitor DPI-aware** at module load (`SetProcessDpiAwareness(2)`). This forces `GetSystemMetrics`, `ImageGrab.grab`, and pynput's `SetCursorPos` to all operate in physical pixels — the model's screenshot, its click coordinates, and the mouse calls share one consistent space. Without this, `ImageGrab.grab` would silently flip the process to DPI-aware on its first call, causing the initial screen-rect query to be logical pixels while the screenshot is physical, and clicks on a HiDPI secondary monitor would land on the wrong position.
 4.  **Cost Tracking**: Same wrapper as the macOS path — see `src_windows/cost_tracker.py`.

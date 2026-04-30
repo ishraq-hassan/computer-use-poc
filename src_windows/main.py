@@ -74,6 +74,18 @@ def cli():
         action="store_true",
         help="Run only the normal LLM baseline (skip Computer Use)",
     )
+    parser.add_argument(
+        "--monitor",
+        type=str,
+        default="primary",
+        help=(
+            "Which screen the agent operates on. 'primary' (default) or '1' = "
+            "primary monitor; '2', '3', ... = additional monitors in detected "
+            "order; 'all' = full virtual desktop (less reliable on multi-monitor); "
+            "'follow' = re-capture the foreground window's monitor after every "
+            "step (recommended for tasks that span multiple apps/monitors)"
+        ),
+    )
 
     args = parser.parse_args()
 
@@ -112,6 +124,7 @@ def cli():
                 model=args.model,
                 tracker=tracker,
                 max_steps=args.max_steps,
+                monitor=args.monitor,
             )
             console.print(cua_result)
         except Exception as e:
