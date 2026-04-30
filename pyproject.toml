@@ -1,0 +1,15 @@
+[project]
+name = "computer-use-poc"
+version = "0.1.0"
+description = "OpenAI Computer Use API proof-of-concept with cost comparison"
+requires-python = ">=3.10"
+dependencies = [
+    "openai>=1.70.0",
+    "rich>=13.0.0",
+    "python-dotenv>=1.0.0",
+    "pynput>=1.7.7",
+    "pyobjc>=10.0",
+]
+
+[project.scripts]
+cua-poc = "src.main:cli"
