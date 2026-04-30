@@ -36,10 +36,10 @@ def cli():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=(
             "Examples:\n"
-            '  python -m src.main --task "Go to example.com and tell me the page title"\n'
-            "  python -m src.main --model gpt-5.4 --max-steps 20\n"
-            "  python -m src.main --cua-only\n"
-            "  python -m src.main --llm-only\n"
+            '  python -m src_mac.main --task "Go to example.com and tell me the page title"\n'
+            "  python -m src_mac.main --model gpt-5.4 --max-steps 20\n"
+            "  python -m src_mac.main --cua-only\n"
+            "  python -m src_mac.main --llm-only\n"
         ),
     )
     parser.add_argument(

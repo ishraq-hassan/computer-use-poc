@@ -12,4 +12,4 @@ dependencies = [
 ]
 
 [project.scripts]
-cua-poc = "src.main:cli"
+cua-poc = "src_mac.main:cli"

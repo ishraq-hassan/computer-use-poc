@@ -51,13 +51,13 @@ cp .env.example .env
 ### Full comparison (normal LLM + Computer Use)
 
 ```bash
-uv run python -m src.main
+uv run python -m src_mac.main
 ```
 
 ### Custom macOS task
 
 ```bash
-uv run python -m src.main --task "Open the Reminders app and add a task to 'Buy Milk'"
+uv run python -m src_mac.main --task "Open the Reminders app and add a task to 'Buy Milk'"
 ```
 
 ## How It Works (Native Mode)
