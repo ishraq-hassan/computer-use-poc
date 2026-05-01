@@ -1,6 +1,14 @@
-# OpenAI Computer Use POC (Native macOS / Windows)
+# Computer Use POC (Native macOS / Windows)
 
-A proof-of-concept that demonstrates OpenAI's [Computer Use API](https://developers.openai.com/api/docs/guides/tools-computer-use) targeting your **actual desktop** (macOS in `src_mac/`, Windows in `src_windows/`), with a **cost tracking wrapper**.
+A proof-of-concept that demonstrates LLM-driven computer-use against your **actual desktop**, with a **cost tracking wrapper** for side-by-side comparison vs a plain text-only baseline.
+
+Three variants live in this repo:
+
+| Variant | Path | API |
+|---|---|---|
+| OpenAI macOS | `src_mac_gpt/` | [OpenAI Computer Use](https://developers.openai.com/api/docs/guides/tools-computer-use) |
+| Gemini macOS | `src_mac_gemini/` | [Gemini Computer Use](https://ai.google.dev/gemini-api/docs/computer-use) (`gemini-2.5-computer-use-preview-10-2025`) |
+| OpenAI Windows | `src_windows/` | [OpenAI Computer Use](https://developers.openai.com/api/docs/guides/tools-computer-use) |
 
 ## Architecture
 
@@ -35,11 +43,11 @@ uv sync
 
 `pyobjc` only installs on macOS (gated by a `sys_platform == 'darwin'` marker), so the same `uv sync` works on both platforms.
 
-### 2. Set your API key
+### 2. Set your API key(s)
 
 ```bash
 cp .env.example .env
-# Edit .env and add your OPENAI_API_KEY
+# Edit .env and add OPENAI_API_KEY and/or GEMINI_API_KEY
 ```
 
 ## macOS
@@ -50,14 +58,29 @@ Your Terminal app (or IDE) needs **Accessibility** access to control the mouse a
 - Open **System Settings** > **Privacy & Security** > **Accessibility**.
 - Add and enable your terminal/IDE.
 
-### Usage
+### Usage — OpenAI variant
 
 ```bash
 # Full comparison (normal LLM + Computer Use)
-uv run python -m src_mac.main
+uv run python -m src_mac_gpt.main
 
 # Custom macOS task
-uv run python -m src_mac.main --task "Open the Reminders app and add a task to 'Buy Milk'"
+uv run python -m src_mac_gpt.main --task "Open the Reminders app and add a task to 'Buy Milk'"
+```
+
+### Usage — Gemini variant
+
+Uses `gemini-2.5-computer-use-preview-10-2025` for the agent and `gemini-2.5-flash` (cost-effective) for the text baseline. The model emits coordinates on a normalized 0–999 grid, which we denormalize to logical pixels.
+
+```bash
+# Full comparison (normal LLM + Computer Use)
+uv run python -m src_mac_gemini.main
+
+# Even cheaper baseline
+uv run python -m src_mac_gemini.main --llm-model gemini-2.5-flash-lite
+
+# Custom task
+uv run python -m src_mac_gemini.main --task "Open the Reminders app and add a task to 'Buy Milk'"
 ```
 
 ### How it works (macOS)

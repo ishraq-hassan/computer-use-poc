@@ -1,10 +1,11 @@
 [project]
 name = "computer-use-poc"
 version = "0.1.0"
-description = "OpenAI Computer Use API proof-of-concept with cost comparison"
+description = "Computer Use API proof-of-concept (OpenAI + Gemini) with cost comparison"
 requires-python = ">=3.10"
 dependencies = [
     "openai>=1.70.0",
+    "google-genai>=1.0.0",
     "rich>=13.0.0",
     "python-dotenv>=1.0.0",
     "pynput>=1.7.7",
@@ -14,5 +15,6 @@ dependencies = [
 ]
 
 [project.scripts]
-cua-poc = "src_mac.main:cli"
+cua-poc = "src_mac_gpt.main:cli"
+cua-poc-gemini = "src_mac_gemini.main:cli"
 cua-poc-win = "src_windows.main:cli"
