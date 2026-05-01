@@ -257,30 +257,6 @@ def get_screen_size() -> tuple[int, int]:
     return int(size.width), int(size.height)
 
 
-# ── Safety acknowledgement ───────────────────────────────────────────────────
-
-
-def needs_confirmation(args: dict[str, Any]) -> bool:
-    sd = args.get("safety_decision")
-    if not isinstance(sd, dict):
-        return False
-    return sd.get("decision") == "require_confirmation"
-
-
-def prompt_user_confirmation(name: str, args: dict[str, Any]) -> bool:
-    sd = args.get("safety_decision", {})
-    explanation = sd.get("explanation", "(no explanation)") if isinstance(sd, dict) else ""
-    console.print(
-        f"\n[bold yellow]🛑 Safety check[/bold yellow] for [cyan]{name}[/cyan]"
-    )
-    console.print(f"  Reason: {explanation}")
-    try:
-        answer = input("  Proceed? [y/N]: ").strip().lower()
-    except EOFError:
-        return False
-    return answer in ("y", "yes")
-
-
 # ── History trimming ────────────────────────────────────────────────────────
 
 
@@ -432,17 +408,6 @@ def run_computer_use(
         for fc in function_calls:
             args = dict(fc.args or {})
 
-            ack = False
-            if needs_confirmation(args):
-                ack = prompt_user_confirmation(fc.name, args)
-                if not ack:
-                    console.print("  [red]✗ Aborted by user.[/red]")
-                    return {
-                        "final_output": final_text,
-                        "steps": step,
-                        "tracker": tracker,
-                    }
-
             try:
                 execute_action(fc.name, args, width, height)
             except Exception as e:
@@ -453,8 +418,6 @@ def run_computer_use(
             shot = capture_screenshot_bytes(width, height)
 
             response_payload: dict[str, Any] = {"url": ""}
-            if ack:
-                response_payload["safety_acknowledgement"] = "true"
 
             function_responses.append(
                 types.FunctionResponse(
