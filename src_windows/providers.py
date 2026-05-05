@@ -7,7 +7,7 @@ import os
 from abc import ABC, abstractmethod
 from typing import Any
 
-from .screen import Action, get_foreground_window_title
+from .screen import Action, OPENAI_TARGET, downscale_screenshot, get_foreground_window_title
 
 
 class Provider(ABC):
@@ -171,17 +171,23 @@ class OpenAIProvider(Provider):
         self._step = 0
         self._prev_response: Any = None
         self._prev_call_id: str | None = None
+        self._scale_x: float = 1.0
+        self._scale_y: float = 1.0
 
-    def _screen_context(self, region_size: tuple[int, int]) -> str:
-        w, h = region_size
+    def _screen_context(self) -> str:
+        w, h = OPENAI_TARGET
         fg = get_foreground_window_title()
         ctx = f"Screenshot is {w}x{h}. Valid click range: (0, 0) to ({w - 1}, {h - 1})."
         if fg:
             ctx += f"\nForeground window (receives keyboard input): {fg!r}"
         return ctx
 
+    def _to_screen(self, x: int, y: int) -> tuple[int, int]:
+        return int(x * self._scale_x), int(y * self._scale_y)
+
     def get_actions(self, screenshot: bytes, region_size: tuple[int, int]) -> list[Action] | None:
-        b64 = base64.b64encode(screenshot).decode()
+        scaled, self._scale_x, self._scale_y = downscale_screenshot(screenshot)
+        b64 = base64.b64encode(scaled).decode()
 
         if self._step == 0:
             response = self._client.responses.create(
@@ -192,7 +198,7 @@ class OpenAIProvider(Provider):
                 truncation="auto",
             )
         else:
-            ctx = self._screen_context(region_size)
+            ctx = self._screen_context()
             response = self._client.responses.create(
                 model=self._model,
                 tools=[{"type": "computer"}],
@@ -248,11 +254,13 @@ class OpenAIProvider(Provider):
             mods = list(r.keys) if getattr(r, "keys", None) else None
 
             if t == "click":
-                actions.append(Action(type="click", x=r.x, y=r.y,
+                sx, sy = self._to_screen(r.x, r.y)
+                actions.append(Action(type="click", x=sx, y=sy,
                     button=getattr(r, "button", "left") or "left", modifiers=mods))
 
             elif t == "double_click":
-                actions.append(Action(type="double_click", x=r.x, y=r.y, modifiers=mods))
+                sx, sy = self._to_screen(r.x, r.y)
+                actions.append(Action(type="double_click", x=sx, y=sy, modifiers=mods))
 
             elif t == "type":
                 actions.append(Action(type="type", text=r.text))
@@ -261,22 +269,24 @@ class OpenAIProvider(Provider):
                 actions.append(Action(type="keypress", keys=list(r.keys)))
 
             elif t == "scroll":
-                actions.append(Action(type="scroll", x=r.x, y=r.y,
+                sx, sy = self._to_screen(r.x, r.y)
+                actions.append(Action(type="scroll", x=sx, y=sy,
                     scroll_x=getattr(r, "scrollX", 0) or 0,
                     scroll_y=getattr(r, "scrollY", 0) or 0, modifiers=mods))
 
             elif t == "move":
-                actions.append(Action(type="move", x=r.x, y=r.y, modifiers=mods))
+                sx, sy = self._to_screen(r.x, r.y)
+                actions.append(Action(type="move", x=sx, y=sy, modifiers=mods))
 
             elif t == "drag":
                 path = []
                 for p in r.path:
                     if isinstance(p, dict):
-                        path.append((p["x"], p["y"]))
+                        path.append(self._to_screen(p["x"], p["y"]))
                     elif isinstance(p, (list, tuple)):
-                        path.append((p[0], p[1]))
+                        path.append(self._to_screen(p[0], p[1]))
                     else:
-                        path.append((p.x, p.y))
+                        path.append(self._to_screen(p.x, p.y))
                 actions.append(Action(type="drag", drag_path=path, modifiers=mods))
 
             elif t == "wait":

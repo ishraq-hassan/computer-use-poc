@@ -107,6 +107,21 @@ def capture_screenshot() -> bytes:
     return buf.getvalue()
 
 
+OPENAI_TARGET = (1366, 768)
+
+
+def downscale_screenshot(png_bytes: bytes, target: tuple[int, int] = OPENAI_TARGET) -> tuple[bytes, float, float]:
+    from PIL import Image
+    img = Image.open(io.BytesIO(png_bytes))
+    orig_w, orig_h = img.size
+    if orig_w <= target[0] and orig_h <= target[1]:
+        return png_bytes, 1.0, 1.0
+    img = img.resize(target, Image.LANCZOS)
+    buf = io.BytesIO()
+    img.save(buf, format="PNG")
+    return buf.getvalue(), orig_w / target[0], orig_h / target[1]
+
+
 def get_foreground_window_title() -> str:
     hwnd = ctypes.windll.user32.GetForegroundWindow()
     if not hwnd:
