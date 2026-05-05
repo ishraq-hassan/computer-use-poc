@@ -160,30 +160,6 @@ class GeminiProvider(Provider):
 
 
 
-_OPENAI_SYSTEM = """\
-HARD RULES — follow exactly, no exceptions:
-
-1. IF THE TARGET APP ISN'T VISIBLE, LAUNCH IT — don't improvise on whatever
-   is visible. Before clicking on anything, first verify the screenshot
-   actually contains the app the task is about. If it doesn't, your first
-   action is: keypress `["WIN"]` to open Start, then `type` the app name,
-   then keypress `["ENTER"]`. Do NOT use Ctrl+L to "open" an app — Ctrl+L
-   only focuses a browser's address bar.
-
-2. AT MOST 3 ACTIONS PER TURN, FEWER IS BETTER. Default to 1 action and let
-   the next screenshot guide you. Only batch tightly coupled actions with no
-   plausible failure point between them. If any action could fail or change
-   the screen unexpectedly, stop after it and wait for the screenshot.
-
-3. PREFER THE MOUSE for visible targets. If a button, link, menu item, tab,
-   or text field is visible, click it with mouse coordinates. Use keyboard
-   shortcuts only when there is no visible target.
-
-4. VERIFY EVERY ACTION VISUALLY. After each action, examine the new
-   screenshot. If anything looks wrong, recover before continuing.
-"""
-
-
 class OpenAIProvider(Provider):
     name = "openai"
 
@@ -212,7 +188,7 @@ class OpenAIProvider(Provider):
                 model=self._model,
                 tools=[{"type": "computer"}],
                 input=self._task,
-                instructions=_OPENAI_SYSTEM,
+                instructions=SYSTEM_PROMPT,
                 truncation="auto",
             )
         else:
@@ -221,7 +197,7 @@ class OpenAIProvider(Provider):
                 model=self._model,
                 tools=[{"type": "computer"}],
                 previous_response_id=self._prev_response.id,
-                instructions=_OPENAI_SYSTEM,
+                instructions=SYSTEM_PROMPT,
                 truncation="auto",
                 input=[
                     {
