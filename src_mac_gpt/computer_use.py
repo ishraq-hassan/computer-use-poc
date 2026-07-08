@@ -209,13 +209,38 @@ def capture_screenshot(width: int, height: int) -> str:
 
     try:
         # -x: mute sound
-        subprocess.run(["screencapture", "-x", tmp_path], check=True)
-        # Resize the retina screenshot down to the logical bounds to align coordinates
-        subprocess.run(
-            ["sips", "-z", str(height), str(width), tmp_path],
-            check=True,
+        capture_result = subprocess.run(
+            ["screencapture", "-x", tmp_path],
             capture_output=True,
+            text=True,
         )
+        if capture_result.returncode != 0:
+            stderr = (capture_result.stderr or "").strip()
+            detail = f" macOS said: {stderr}" if stderr else ""
+            raise RuntimeError(
+                "Could not capture the desktop screenshot."
+                f"{detail}\n\n"
+                "Grant Screen Recording permission to the app running this command "
+                "(Terminal, iTerm, VS Code, Codex, etc.) in System Settings > "
+                "Privacy & Security > Screen & System Audio Recording, then quit "
+                "and reopen that app before rerunning the script."
+            )
+        if not os.path.exists(tmp_path) or os.path.getsize(tmp_path) == 0:
+            raise RuntimeError(
+                "macOS reported a successful screenshot, but the screenshot file "
+                "was empty. Check Screen Recording permission for the app running "
+                "this command, then quit and reopen that app before rerunning."
+            )
+        # Resize the retina screenshot down to the logical bounds to align coordinates
+        resize_result = subprocess.run(
+            ["sips", "-z", str(height), str(width), tmp_path],
+            capture_output=True,
+            text=True,
+        )
+        if resize_result.returncode != 0:
+            stderr = (resize_result.stderr or resize_result.stdout or "").strip()
+            detail = f" macOS said: {stderr}" if stderr else ""
+            raise RuntimeError(f"Could not resize desktop screenshot.{detail}")
 
         with open(tmp_path, "rb") as f:
             png_bytes = f.read()
@@ -239,6 +264,7 @@ def run_computer_use(
     model: str = "gpt-5.4-mini",
     tracker: CostTracker | None = None,
     max_steps: int = 30,
+    include_initial_screenshot: bool = False,
 ) -> dict[str, Any]:
     """
     Run the full computer-use loop natively on macOS.
@@ -256,11 +282,29 @@ def run_computer_use(
     console.print(f"  Model: {model}  |  Max steps: {max_steps}\n")
 
     # ── Step 1: Initial request ──────────────────────────────────────
+    initial_input: Any = task
+    if include_initial_screenshot:
+        screenshot_b64 = capture_screenshot(width, height)
+        initial_input = [
+            {
+                "role": "user",
+                "content": [
+                    {"type": "input_text", "text": task},
+                    {
+                        "type": "input_image",
+                        "image_url": f"data:image/png;base64,{screenshot_b64}",
+                        "detail": "original",
+                    },
+                ],
+            }
+        ]
+        console.print("  [dim]Including initial desktop screenshot in first request[/dim]")
+
     t0 = time.time()
     response = client.responses.create(
         model=model,
         tools=[computer_tool],
-        input=task,
+        input=initial_input,
         truncation="auto",
     )
     duration = time.time() - t0
@@ -270,8 +314,6 @@ def run_computer_use(
     # ── Step 2+: Action loop ─────────────────────────────────────────
     step = 0
     while step < max_steps:
-        step += 1
-
         # Find computer_call in output
         computer_call = None
         for item in response.output:
@@ -281,6 +323,8 @@ def run_computer_use(
 
         if computer_call is None:
             break
+
+        step += 1
 
         # Execute actions
         actions = computer_call.actions

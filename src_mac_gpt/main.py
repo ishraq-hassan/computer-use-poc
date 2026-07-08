@@ -36,10 +36,10 @@ def cli():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=(
             "Examples:\n"
-            '  python -m src_mac.main --task "Go to example.com and tell me the page title"\n'
-            "  python -m src_mac.main --model gpt-5.4 --max-steps 20\n"
-            "  python -m src_mac.main --cua-only\n"
-            "  python -m src_mac.main --llm-only\n"
+            '  python -m src_mac_gpt.main --task "Open Notes and type hello"\n'
+            "  python -m src_mac_gpt.main --model gpt-5.4 --max-steps 20\n"
+            "  python -m src_mac_gpt.main --initial-screenshot --cua-only\n"
+            "  python -m src_mac_gpt.main --llm-only\n"
         ),
     )
     parser.add_argument(
@@ -59,6 +59,11 @@ def cli():
         type=int,
         default=30,
         help="Max CUA loop iterations (default: 30)",
+    )
+    parser.add_argument(
+        "--initial-screenshot",
+        action="store_true",
+        help="Include the current desktop screenshot in the first CUA request",
     )
     parser.add_argument(
         "--cua-only",
@@ -108,6 +113,7 @@ def cli():
                 model=args.model,
                 tracker=tracker,
                 max_steps=args.max_steps,
+                include_initial_screenshot=args.initial_screenshot,
             )
             console.print(cua_result)
         except Exception as e:
