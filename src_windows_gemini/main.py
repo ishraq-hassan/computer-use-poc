@@ -41,7 +41,7 @@ DEFAULT_TASK = (
 )
 
 # The Computer Use tool only ships on this preview model today.
-DEFAULT_CUA_MODEL = "gemini-2.5-computer-use-preview-10-2025"
+DEFAULT_CUA_MODEL = "gemini-3.5-flash"
 # Cost-effective text baseline.
 DEFAULT_LLM_MODEL = "gemini-2.5-flash"
 

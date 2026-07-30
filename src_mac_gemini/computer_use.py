@@ -2,7 +2,7 @@
 Gemini Computer Use loop targeting the native macOS Desktop.
 
 Mirrors the OpenAI flavor in src_mac_gpt/, but uses google-genai with
-gemini-2.5-computer-use-preview-10-2025. The model emits normalized
+gemini-3.5-flash. The model emits normalized
 0-999 coordinates which we denormalize to logical pixels and execute
 via pynput. Screenshots are captured with `screencapture` and resized
 with `sips` to match logical bounds.
@@ -317,7 +317,7 @@ def _redact_old_screenshots(
 
 def run_computer_use(
     task: str,
-    model: str = "gemini-2.5-computer-use-preview-10-2025",
+    model: str = "gemini-3.5-flash",
     tracker: CostTracker | None = None,
     max_steps: int = 30,
     keep_screenshots: int = 1,

@@ -7,9 +7,9 @@ Four variants live in this repo:
 | Variant | Path | API |
 |---|---|---|
 | OpenAI macOS | `src_mac_gpt/` | [OpenAI Computer Use](https://developers.openai.com/api/docs/guides/tools-computer-use) |
-| Gemini macOS | `src_mac_gemini/` | [Gemini Computer Use](https://ai.google.dev/gemini-api/docs/computer-use) (`gemini-2.5-computer-use-preview-10-2025`) |
+| Gemini macOS | `src_mac_gemini/` | [Gemini Computer Use](https://ai.google.dev/gemini-api/docs/computer-use) (`gemini-3.5-flash`) |
 | OpenAI Windows | `src_windows/` | [OpenAI Computer Use](https://developers.openai.com/api/docs/guides/tools-computer-use) |
-| Gemini Windows | `src_windows_gemini/` | [Gemini Computer Use](https://ai.google.dev/gemini-api/docs/computer-use) (`gemini-2.5-computer-use-preview-10-2025`) |
+| Gemini Windows | `src_windows_gemini/` | [Gemini Computer Use](https://ai.google.dev/gemini-api/docs/computer-use) (`gemini-3.5-flash`) |
 
 ## Architecture
 
@@ -71,7 +71,7 @@ uv run python -m src_mac_gpt.main --task "Open the Reminders app and add a task 
 
 ### Usage — Gemini variant
 
-Uses `gemini-2.5-computer-use-preview-10-2025` for the agent and `gemini-2.5-flash` (cost-effective) for the text baseline. The model emits coordinates on a normalized 0–999 grid, which we denormalize to logical pixels.
+Uses `gemini-3.5-flash` for the agent and `gemini-2.5-flash` (cost-effective) for the text baseline. The model emits coordinates on a normalized 0–999 grid, which we denormalize to logical pixels.
 
 ```bash
 # Full comparison (normal LLM + Computer Use)
@@ -116,7 +116,7 @@ uv run python -m src_windows.main --monitor follow
 
 ### Usage — Gemini variant
 
-Uses `gemini-2.5-computer-use-preview-10-2025` for the agent and `gemini-2.5-flash` for the text baseline. The model emits coordinates on a normalized 0–999 grid, which we denormalize to physical pixels of the captured monitor.
+Uses `gemini-3.5-flash` for the agent and `gemini-2.5-flash` for the text baseline. The model emits coordinates on a normalized 0–999 grid, which we denormalize to physical pixels of the captured monitor.
 
 ```bash
 # Full comparison (normal LLM + Computer Use)

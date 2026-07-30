@@ -646,7 +646,7 @@ HARD RULES — follow exactly, no exceptions:
 
 def run_computer_use(
     task: str,
-    model: str = "gemini-2.5-computer-use-preview-10-2025",
+    model: str = "gemini-3.5-flash",
     tracker: CostTracker | None = None,
     max_steps: int = 30,
     keep_screenshots: int = 1,

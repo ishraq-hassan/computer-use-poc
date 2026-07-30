@@ -16,7 +16,7 @@ from rich.table import Table
 # ── Pricing per 1M tokens (April 2026) ──────────────────────────────────────
 # Computer Use is priced at the same rates as the underlying SKU.
 PRICING: dict[str, dict[str, float]] = {
-    "gemini-2.5-computer-use-preview-10-2025": {
+    "gemini-3.5-flash": {
         "input": 1.25,
         "cached_input": 0.3125,
         "output": 10.00,
